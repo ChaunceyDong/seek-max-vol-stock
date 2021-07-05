@@ -27,9 +27,11 @@ if __name__ == '__main__':
     for [s, e] in DATE_LST:
         daily_df = daily_df.append(get_daily(s, e))
 
-    ranking = daily_df.groupby(by='ts_code').mean()["amount"].sort_values(ascending=False)
-    # ranking['name'] = ranking
+    vol_df = daily_df.pivot_table(index = "trade_date", values="vol",columns="ts_code")
+    ranking = vol_df.ewm(halflife=1, adjust=False).mean().iloc[-1].sort_values(ascending=False)
+    # ranking = daily_df.groupby(by='ts_code').mean()["amount"].sort_values(ascending=False)
+
     output = pd.DataFrame(ranking.index)
     output['name'] = output['ts_code'].apply(lambda x: sym_name_map[x])
-    output['avg_vol'] = output['ts_code'].apply(lambda x: ranking[x])
+    output['ewm_vol'] = output['ts_code'].apply(lambda x: ranking[x])
     output.to_csv("data/vol_ranking.csv", encoding='utf_8_sig')
