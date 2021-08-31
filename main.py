@@ -2,12 +2,9 @@ import tushare as ts
 import pandas as pd
 from time import sleep
 from config import *
+from tushare_data import get_cb_eod, get_sym_name_map, get_sym_underlying_map
+import datetime
 
-
-def get_sym_name_map():
-    """获取可转债基础信息列表"""
-    df = pro.cb_basic(fields="ts_code,bond_short_name")
-    return dict(zip(df['ts_code'], df['bond_short_name']))
 
 def get_daily(start_date, end_date):
     try:
@@ -23,15 +20,22 @@ if __name__ == '__main__':
     pro = ts.pro_api()
 
     sym_name_map = get_sym_name_map()
+    get_sym_underlying_map = get_sym_underlying_map()
     daily_df = pd.DataFrame()
-    for [s, e] in DATE_LST:
-        daily_df = daily_df.append(get_daily(s, e))
 
-    vol_df = daily_df.pivot_table(index = "trade_date", values="vol",columns="ts_code")
-    ranking = vol_df.ewm(halflife=1, adjust=False).mean().iloc[-1].sort_values(ascending=False)
-    # ranking = daily_df.groupby(by='ts_code').mean()["amount"].sort_values(ascending=False)
+
+    max_vol_summary = pd.DataFrame()
+    all_eod_df = get_cb_eod(START_DATE, END_DATE)
+
+    vol_df = all_eod_df.pivot_table(index="trade_date", values="vol", columns="ts_code")
+    ewm_vol = vol_df.ewm(halflife=5, adjust=False, min_periods=10).mean()
+    ranking = ewm_vol.iloc[-1].sort_values(ascending=False)
 
     output = pd.DataFrame(ranking.index)
     output['name'] = output['ts_code'].apply(lambda x: sym_name_map[x])
     output['ewm_vol'] = output['ts_code'].apply(lambda x: ranking[x])
-    output.to_csv("data/vol_ranking.csv", encoding='utf_8_sig')
+    output['underlying'] = output['ts_code'].apply(lambda x: get_sym_underlying_map[x])
+    output['exchange'] = output['ts_code'].apply(lambda x: get_sym_underlying_map[x])
+    file_path = f"data/vol_ranking_{START_DATE}_{END_DATE}-" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + ".csv"
+    output.to_csv(file_path, encoding='utf_8_sig')
+    print("finished, output to", file_path)
