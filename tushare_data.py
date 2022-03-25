@@ -3,7 +3,7 @@ from time import sleep
 import tushare as ts
 from datetime import datetime, timedelta
 import numpy as np
-
+ts.set_token('c721c267a710ecdcb3f8da94e4a3c3ed145ae5c0e4cf6a5c983e470b')
 pro = ts.pro_api()
 
 
@@ -104,16 +104,8 @@ def get_sym_underlying_map():
     return dict(zip(df['ts_code'], df['stk_code']))
 
 if __name__ == '__main__':
-    # OUTPUT_DIR = "E:/OneDrive/Study/hft_data/eod_data/"
-    START_DATE = '20210702'
-    END_DATE = '20210705'
     # date  = '2021-07-05'
     # eod_df = pd.DataFrame()
     # d = get_stock_eod(START_DATE, END_DATE)
-    d = get_cb_eod(START_DATE, END_DATE)
-    #
-    # eod_df = pro.daily(trade_date=START_DATE)
-    # eod_df['code'] = eod_df['ts_code'].apply(lambda x: x[-2:] + x[:6])
-    # eod_df['date'] = eod_df['trade_date'].apply(lambda x: x[:4] + "/" + x[-4:-2] + "/" + x[-2:])
-    # eod_df['amount'] = eod_df['amount'] * 1000  # TODO 为了适配baostock
-    # eod_df.index = eod_df['ts_code']
+    d1 = get_cb_eod('20210702', '20210705')
+    print(d1)
