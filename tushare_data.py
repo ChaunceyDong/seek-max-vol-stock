@@ -74,7 +74,7 @@ def get_cb_eod_single(trade_date):
         eod_df = pro.cb_daily(trade_date=trade_date)
         return eod_df
     except:
-        sleep(5)
+        sleep(10)
         print("api access limit, sleep for 5s")
         return get_cb_eod_single(trade_date)
 
@@ -102,6 +102,11 @@ def get_sym_underlying_map():
     """获取可转债基础信息列表"""
     df = pro.cb_basic(fields="ts_code,stk_code")
     return dict(zip(df['ts_code'], df['stk_code']))
+
+def get_sym_underlying_name_map():
+    """获取可转债基础信息列表"""
+    df = pro.cb_basic(fields="ts_code,stk_short_name")
+    return dict(zip(df['ts_code'], df['stk_short_name']))
 
 if __name__ == '__main__':
     # date  = '2021-07-05'
